@@ -124,7 +124,7 @@ def mixsoundnoisepair(soundfile,noisefile,wnd,soundDBTarget,snr=15):
     combined=sound.overlay(noise)
     return combined
 
-def mixnoises_sounds(soundfiles,noisefiles,outputDir,noiseNum=10,totalSamples=1000,soundDBTarget=-26,snr=15):
+def mixnoises_sounds(soundfiles,noisefiles,outputDir,wnd=10,soundDBTarget=-26,snr=15,noiseNum=10,totalSamples=1000):
     sampleN=0
     idx=0
     while sampleN<totalSamples:
@@ -132,12 +132,25 @@ def mixnoises_sounds(soundfiles,noisefiles,outputDir,noiseNum=10,totalSamples=10
         sounds=soundfiles[sampleN:sampleN+noiseNum]
         sampleN+=noiseNum
         for noisefile,soundfile in zip(noises,sounds):
-            mixedsound=mixsoundnoisepair(soundfile,noisefile,10,soundDBTarget,snr)
+            mixedsound=mixsoundnoisepair(soundfile,noisefile,wnd,soundDBTarget,snr)
             mixedsound.export(outputDir+str(idx)+'.wav', format="wav")
             idx+=1
-             
 
-def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,outputTrainDir,outputTestDir,soundDBTarget=-26,snr=15):
+def generateNormalizedNoiseDir(dataDir,noiseFiles,outputNoiseDir,wnd,noiseDBTarget):
+    if not os.path.exists(dataDir+outputNoiseDir):
+        os.system('mkdir {}{}'.format(dataDir,outputNoiseDir))
+    idx=0
+    for noisefile in noiseFiles:
+        n=normalizeaudio(noisefile,wnd,noiseDBTarget)
+        n.export(dataDir+outputNoiseDir+str(idx)+'.wav',format='wav')
+        idx+=1
+    
+    
+
+def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,\
+                 outputTrainDir,outputTestDir,\
+                 outputNoiseTrainDir,outputNoiseTestDir,\
+                 wnd,soundDBTarget,snr):
     if not os.path.exists(dataDir+outputTestDir):
         os.system('mkdir {}{}'.format(dataDir,outputTestDir))
     if not os.path.exists(dataDir+outputTrainDir):
@@ -156,9 +169,14 @@ def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,outpu
     shuffle(noiseTestFiles)
     shuffle(noiseTrainFiles)
     
-    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,20,2000,soundDBTarget=-26,snr=15)
-    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,20,500,soundDBTarget=-26,snr=15)
+    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,wnd,soundDBTarget,snr,noiseNum=20,totalSamples=2000)
+    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,wnd,soundDBTarget,snr,noiseNum=20,totalSamples=500)
     
+    generateNormalizedNoiseDir(dataDir,noiseTrainFiles,outputNoiseTrainDir,wnd,noiseDBTarget=soundDBTarget-snr)
+    generateNormalizedNoiseDir(dataDir,noiseTestFiles,outputNoiseTestDir,wnd,noiseDBTarget=soundDBTarget-snr)
+    
+    
+        
 if __name__ == '__main__':
 
     # splitTrainTest('./freesound_noise/crowd/','./processed/crowdTrain/','./processed/crowdTest/')
@@ -172,20 +190,12 @@ if __name__ == '__main__':
     #                  './processed/cleanTrain/',\
     #                  './processed/cleanTest/',
     #                  2000,500)
-
     generateData('/Users/dengjiachuan/Desktop/zoom_intern/noise_recog/data/processed/',\
             'cleanTrain/',\
             'cleanTest/',\
             ['crowdTrain/','dogTrain/','keyboardTrain/','lawnmowerTrain/','mouseclickTrain/'],\
             ['crowdTest/','dogTest/','keyboardTest/','lawnmowerTest/','mouseclickTest/'],\
-            'trainNoisyData12dB/',\
-            'testNoisyData12dB/',\
-            soundDBTarget=-26,\
-            snr=12)
-    
-
-    
-    
-    
-    
+            'trainNoisyData15dB/','testNoisyData15dB/',\
+             'trainNoise15dB/','testNoise15dB/',\
+            wnd=10,soundDBTarget=-26,snr=15)
     
