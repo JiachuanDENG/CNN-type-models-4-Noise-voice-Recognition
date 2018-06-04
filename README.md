@@ -21,7 +21,7 @@ With [MobileNet](https://arxiv.org/pdf/1704.04861.pdf) Tricks applied, so that m
 
 ## Performance:
 
-![](https://user-images.githubusercontent.com/20760190/40931609-7ea3f31c-67e0-11e8-9d68-2278718d9194.png)
+![](https://user-images.githubusercontent.com/20760190/40945930-b6d17c08-680f-11e8-9f2c-8e958dd858e6.png)
 
 ## Details:
 For more details, please check out in this [slides](https://www.sharelatex.com/read/zfyyzsjgykcr)
