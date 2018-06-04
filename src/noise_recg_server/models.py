@@ -213,15 +213,35 @@ class CNNAudioMobile(nn.Module):
         
         
         
-        
         self.conv2=nn.Sequential(
+            
             nn.Conv2d(
                 in_channels=64,
-                out_channels=64,
+                out_channels=1,
                 kernel_size=(10,4)
             ),
+            
+            nn.BatchNorm2d(1),
+            nn.ReLU(),
+            
+            nn.Conv2d(in_channels=1,
+                      out_channels=64,
+                      kernel_size=1,
+                      bias=False),
+            nn.BatchNorm2d(64),
             nn.ReLU()
+                
+                
+            
         )
+        # self.conv2=nn.Sequential(
+        #     nn.Conv2d(
+        #         in_channels=64,
+        #         out_channels=64,
+        #         kernel_size=(10,4)
+        #     ),
+        #     nn.ReLU()
+        # )
         self.dropout2=nn.Dropout(dropoutP)
         
         self.FC=nn.Linear(5504,self.classN)

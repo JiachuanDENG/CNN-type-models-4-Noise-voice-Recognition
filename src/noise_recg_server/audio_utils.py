@@ -124,7 +124,8 @@ def mixsoundnoisepair(soundfile,noisefile,wnd,soundDBTarget,snr=15):
     combined=sound.overlay(noise)
     return combined
 
-def mixnoises_sounds(soundfiles,noisefiles,outputDir,wnd=10,soundDBTarget=-26,snr=15,noiseNum=10,totalSamples=1000):
+def mixnoises_sounds(soundfiles,noisefiles,outputDir,\
+    wnd=10,soundDBTarget=-26,snr=15,noiseNum=10,totalSamples=1000):
     sampleN=0
     idx=0
     while sampleN<totalSamples:
@@ -169,8 +170,10 @@ def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,\
     shuffle(noiseTestFiles)
     shuffle(noiseTrainFiles)
     
-    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,wnd,soundDBTarget,snr,noiseNum=20,totalSamples=2000)
-    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,wnd,soundDBTarget,snr,noiseNum=20,totalSamples=500)
+    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,wnd,soundDBTarget,snr,\
+        noiseNum=20,totalSamples=2000)
+    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,wnd,soundDBTarget,snr,\
+        noiseNum=20,totalSamples=500)
     
     generateNormalizedNoiseDir(dataDir,noiseTrainFiles,outputNoiseTrainDir,wnd,noiseDBTarget=soundDBTarget-snr)
     generateNormalizedNoiseDir(dataDir,noiseTestFiles,outputNoiseTestDir,wnd,noiseDBTarget=soundDBTarget-snr)
@@ -198,4 +201,10 @@ if __name__ == '__main__':
             'trainNoisyData15dB/','testNoisyData15dB/',\
              'trainNoise15dB/','testNoise15dB/',\
             wnd=10,soundDBTarget=-26,snr=15)
+
+
+
+
+
+
     

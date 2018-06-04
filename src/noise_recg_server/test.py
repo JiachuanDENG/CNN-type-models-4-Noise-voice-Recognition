@@ -21,7 +21,7 @@ def forwardingTime(model,X,y):
     start = time.clock()
     outputVariable=model.forwarding(xVariable,isTrain=False)
     print ('Time Consumption :{}'.format(time.clock() - start))
-    print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)))
+    print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
 
 
 
