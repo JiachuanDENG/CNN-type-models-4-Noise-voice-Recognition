@@ -95,8 +95,8 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
 if __name__ == '__main__':
     modelName=sys.argv[1]
 
-    wanted_words='trainnoisydata12db,noise'
-    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildData12dB/',\
+    wanted_words='trainnoisydata15db,trainnoise15db'
+    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildData15dB/',\
         wanted_words=wanted_words)
 
     model=models.selectingModel(modelName,model_settings,classN=len(wanted_words.split(',')))

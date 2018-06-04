@@ -29,8 +29,8 @@ if __name__ == '__main__':
     modelNames=sys.argv[1]
     testPercentage=sys.argv[2]
     modelNameList=modelNames.split(',')
-    wanted_words='testnoisydata12db,noise'
-    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildDataTest12dB/',\
+    wanted_words='testnoisydata15db,testnoise15db'
+    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildDataTest15dB/',\
         wanted_words=wanted_words)
     
     testx=np.concatenate((trainx,valx),axis=0)
