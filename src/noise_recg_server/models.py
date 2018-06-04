@@ -252,19 +252,7 @@ class CNNAudioLowLatencyMobile(nn.Module):
         super(CNNAudioLowLatencyMobile,self).__init__()
         self.model_settings=model_settings
         self.classN=classN
-#         self.conv1=nn.Sequential(
-#             nn.Conv2d(
-#                 in_channels=1,
-#                 out_channels=186,
-#                 stride=1,
-#                 kernel_size=(
-#                             model_settings['spectrogram_length'],
-#                             8
-#                             )
-#                     ),
-#             nn.ReLU()
-            
-#         )
+
         self.conv1=nn.Sequential(
             
             nn.Conv2d(
