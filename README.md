@@ -13,6 +13,7 @@ With [MobileNet](https://arxiv.org/pdf/1704.04861.pdf) Tricks applied, so that m
 ## Packages Required:
 **tensorflow** version >= 1.8.0 some useful audio processing tool are used for audio data preprocessing</br>
 **pytorch** used for model training
+**pydub** used for audio preprocessing (audio segmentation + normalization) 
 
 ## Run codes:
 **training**: python3 train.py [model name] </br>
