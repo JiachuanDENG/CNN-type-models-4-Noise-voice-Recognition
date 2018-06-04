@@ -11,7 +11,7 @@ CNN-type pytorch implemented models in paper https://static.googleusercontent.co
 With [MobileNet](https://arxiv.org/pdf/1704.04861.pdf) Tricks applied, so that models may be more reasonable applied in real-time tasks. (Still needs more data to let this trick work)
 
 ## Packages Required:
-**tensorflow** version >= 1.8.0 used for audio data preprocessing</br>
+**tensorflow** version >= 1.8.0 some useful audio processing tool are used for audio data preprocessing</br>
 **pytorch** used for model training
 
 ## Run codes:
