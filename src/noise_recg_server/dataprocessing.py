@@ -25,6 +25,11 @@ def shuffleSamples(trainXFull,trainyFull):
   trainXFull=trainXFull[indices,:]
   trainyFull=trainyFull[indices]
   return trainXFull,trainyFull
+def datatypechange(trainXFull,trainyFull):
+  trainXFull=trainXFull.astype('float32')
+  trainyFull=trainyFull.astype('int')
+ 
+  return trainXFull,trainyFull
 
 
 def getAllProcessedData(FLAGS):
@@ -75,20 +80,20 @@ def getAllProcessedData(FLAGS):
     
     
 
-    trainXFull, trainyFull = audio_processor.get_data(
+    trainXFull, trainyFull,trainFilesTrack = audio_processor.get_data(
           -1, 0, model_settings,time_shift_samples, 'training', sess)
-    valXFull, valyFull= (
+    valXFull, valyFull,valFilesTrack= (
             audio_processor.get_data(-1, 0, model_settings,0, 'validation', sess))
-    testXFull, testyFull= (
+    testXFull, testyFull,testFilesTrack= (
             audio_processor.get_data(-1, 0, model_settings,0, 'testing', sess))
 
     trainXFull=np.concatenate((trainXFull,testXFull),axis=0)
     trainyFull=np.concatenate((trainyFull,testyFull),axis=0)
 
-    # trainFilesTrack=trainFilesTrack+testFilesTrack
+    trainFilesTrack=trainFilesTrack+testFilesTrack
 
-    # trainXFull,trainyFull=shuffleSamples(trainXFull,trainyFull)
-    # valXFull,valyFull=shuffleSamples(valXFull,valyFull)
+    trainXFull,trainyFull=datatypechange(trainXFull,trainyFull)
+    valXFull,valyFull=datatypechange(valXFull,valyFull)
     
 
 
@@ -108,7 +113,7 @@ def getAllProcessedData(FLAGS):
     
 
 
-  return trainXFull,trainyFull,valXFull,valyFull,model_settings
+  return trainXFull,trainyFull,valXFull,valyFull,model_settings,trainFilesTrack,valFilesTrack
   # return train_fingerprints,train_ground_truth,model_settings
   
 
@@ -176,5 +181,5 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   FLAGS, unparsed = parser.parse_known_args()
   # print ('hello',FLAGS)
   # tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
-  trainx,trainy,valx,valy,model_settings=getAllProcessedData(FLAGS)
-  return  trainx,trainy,valx,valy,model_settings
+  trainx,trainy,valx,valy,model_settings,trainFilesTrack,valFilesTrack=getAllProcessedData(FLAGS)
+  return  trainx,trainy,valx,valy,model_settings,trainFilesTrack,valFilesTrack

@@ -11,10 +11,10 @@ import models
 import dataprocessing
 import time
 from train import cal_accu as cal_accu
+import os
 
 
-
-def forwardingTime(model,X,y):
+def forwardingTime(model,X,y,filetrack):
     xVariable=Variable(torch.from_numpy(X))
     yVariable=Variable(torch.from_numpy(y))
 
@@ -23,6 +23,7 @@ def forwardingTime(model,X,y):
     print ('Time Consumption :{}'.format(time.clock() - start))
     print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
     perf_measure(yVariable,outputVariable)
+    logBadSamples(outputVariable,yVariable,filetrack)
 
 def perf_measure(y_actualVariable, y_hatVariable):
     _,y_hatVariable=torch.max(y_hatVariable, 1)
@@ -49,6 +50,35 @@ def perf_measure(y_actualVariable, y_hatVariable):
 
     print ("TP (pred voice, actual voice):{}\nFP (pred voice , actual noise):{}\nTN (pred noise, actual noise):{}\nFN (pred noise, actual voice):{}".format(TP, FP, TN, FN))
 
+def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest/'):
+    def cperrorfiles(errorfilenames,outputdir='../../data/realtest/errorfiles'):
+        if not os.path.exists(outputdir):
+            os.system('mkdir {}'.format(outputdir))
+        for errorfile in errorfilenames:
+            os.system('cp {} {}'.format(errorfile,outputdir))
+
+    def compare(array1,array2,filesTrack):
+        logf=open(datadir+'/badsamples.log','w')
+        accu=0.
+        errorfiles=[]
+        if len(array1)!=len(array2):
+            print ('len error')
+            return
+        for i,a1 in enumerate(array1):
+    #         print (a1,array2[i])
+            if a1==array2[i]:
+                accu+=1.
+            else:
+                logf.write(filesTrack[i]+'\n')
+                errorfiles.append(filesTrack[i])
+        logf.close()
+        cperrorfiles(errorfiles)
+
+
+    _,outputVal=torch.max(outputVal, 1)
+    return compare(outputVal.data.numpy(),yvalVariable.data.numpy(),filesTrack)
+
+
 
 
 if __name__ == '__main__':
@@ -56,11 +86,12 @@ if __name__ == '__main__':
     testPercentage=sys.argv[2]
     modelNameList=modelNames.split(',')
     wanted_words='testnoisydata15dbnorm,testnoise15db'
-    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/realtest',\
+    trainx,trainy,valx,valy,model_settings,trainfiletrack,valfiletrack=dataprocessing.returnData(datadir='../../data/realtest',\
         wanted_words=wanted_words)
     
     testx=np.concatenate((trainx,valx),axis=0)
     testy=np.concatenate((trainy,valy),axis=0)
+    filetrack=trainfiletrack+valfiletrack
 
     for modelName in modelNameList:
         modelSaveFilePath='./{}modelTrain.pkl'.format(modelName)
@@ -69,7 +100,7 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(modelSaveFilePath))
         print ('*'*10,modelName,'*'*10)
         # forwardingTime(model,testx[:1],testy[:1])
-        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])])
+        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])],filetrack[:int(float(testPercentage)*testx.shape[0])])
 
 
 

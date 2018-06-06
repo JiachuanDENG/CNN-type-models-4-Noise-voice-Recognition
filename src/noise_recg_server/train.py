@@ -96,7 +96,7 @@ if __name__ == '__main__':
     modelName=sys.argv[1]
 
     wanted_words='trainnoisydata15db,trainnoise15db'
-    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildData15dB/',\
+    trainx,trainy,valx,valy,model_settings,_,__=dataprocessing.returnData(datadir='../../data/selfbuildData15dB/',\
         wanted_words=wanted_words)
 
     model=models.selectingModel(modelName,model_settings,classN=len(wanted_words.split(',')))
