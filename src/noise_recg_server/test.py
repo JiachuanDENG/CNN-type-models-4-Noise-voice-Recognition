@@ -22,6 +22,32 @@ def forwardingTime(model,X,y):
     outputVariable=model.forwarding(xVariable,isTrain=False)
     print ('Time Consumption :{}'.format(time.clock() - start))
     print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
+    perf_measure(yVariable,outputVariable)
+
+def perf_measure(y_actualVariable, y_hatVariable):
+    _,y_hatVariable=torch.max(y_hatVariable, 1)
+    y_actual=y_actualVariable.data.numpy()
+    y_hat=y_hatVariable.data.numpy()
+
+
+    # noisy voice label 0
+    # noise label 1
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
+
+    for i in range(len(y_hat)): 
+        if y_actual[i]==0 and y_actual[i]==y_hat[i]:
+           TP += 1 # pred voice, actual voice
+        if y_hat[i]==0  and y_actual[i]!=y_hat[i]:
+           FP += 1 # pred voice , actual noise
+        if y_actual[i]==1 and y_actual[i]==y_hat[i]:
+           TN += 1 # pred noise, actual noise
+        if y_hat[i]==1 and y_actual[i]!=y_hat[i]:
+           FN += 1 # pred noise, actual voice
+
+    print ("TP (pred voice, actual voice):{}\nFP (pred voice , actual noise):{}\nTN (pred noise, actual noise):{}\nFN (pred noise, actual voice):{}".format(TP, FP, TN, FN))
 
 
 
@@ -29,8 +55,8 @@ if __name__ == '__main__':
     modelNames=sys.argv[1]
     testPercentage=sys.argv[2]
     modelNameList=modelNames.split(',')
-    wanted_words='testnoisydata15db,testnoise15db'
-    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/selfbuildDataTest15dB/',\
+    wanted_words='testnoisydata15dbnorm,testnoise15db'
+    trainx,trainy,valx,valy,model_settings=dataprocessing.returnData(datadir='../../data/realtest',\
         wanted_words=wanted_words)
     
     testx=np.concatenate((trainx,valx),axis=0)

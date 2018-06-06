@@ -29,7 +29,7 @@ def cal_accu(outputVal,yvalVariable):
     
 
 BATCH_SIZE=128
-EPOCH=60
+EPOCH=45
 
 
 
