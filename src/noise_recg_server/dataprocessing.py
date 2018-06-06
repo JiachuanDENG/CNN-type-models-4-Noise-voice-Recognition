@@ -14,7 +14,7 @@ import tensorflow as tf
 import input_dataV2 as input_data
 import models
 from tensorflow.python.platform import gfile
-
+import pickle as pkl
 # FLAGS = None
 
 def shuffleSamples(trainXFull,trainyFull):
@@ -77,16 +77,18 @@ def getAllProcessedData(FLAGS):
 
     trainXFull, trainyFull = audio_processor.get_data(
           -1, 0, model_settings,time_shift_samples, 'training', sess)
-    valXFull, valyFull = (
+    valXFull, valyFull= (
             audio_processor.get_data(-1, 0, model_settings,0, 'validation', sess))
-    testXFull, testyFull = (
+    testXFull, testyFull= (
             audio_processor.get_data(-1, 0, model_settings,0, 'testing', sess))
 
     trainXFull=np.concatenate((trainXFull,testXFull),axis=0)
     trainyFull=np.concatenate((trainyFull,testyFull),axis=0)
 
-    trainXFull,trainyFull=shuffleSamples(trainXFull,trainyFull)
-    valXFull,valyFull=shuffleSamples(valXFull,valyFull)
+    # trainFilesTrack=trainFilesTrack+testFilesTrack
+
+    # trainXFull,trainyFull=shuffleSamples(trainXFull,trainyFull)
+    # valXFull,valyFull=shuffleSamples(valXFull,valyFull)
     
 
 
@@ -101,7 +103,7 @@ def getAllProcessedData(FLAGS):
     np.save(FLAGS.data_dir+'/valX.npy',valXFull)
 
     np.save(FLAGS.data_dir+'/valy.npy',valyFull)
-
+    # pkl.dump(trainFilesTrack,open(FLAGS.data_dir+'/trainfilesTrack.pkl','wb'))
     
     
 

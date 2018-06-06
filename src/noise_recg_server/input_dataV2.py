@@ -270,6 +270,9 @@ class AudioProcessor(object):
     """
     # Pick one of the partitions to choose samples from.
     candidates = self.data_index[mode]
+    # filenamesTrack=[]
+
+
     if how_many == -1:
       sample_count = len(candidates)
     else:
@@ -314,6 +317,7 @@ class AudioProcessor(object):
       data[i - offset, :] = sess.run(self.mfcc_, feed_dict=input_dict).flatten()
       label_index = self.word_to_index[sample['label']]
       labels[i - offset] = label_index
+      # filenamesTrack.append(sample['file'])
       # print (data[i - offset, :].shape,'_'*10)
     return data, labels
 
