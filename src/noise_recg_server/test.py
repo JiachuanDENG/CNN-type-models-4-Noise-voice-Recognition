@@ -51,39 +51,51 @@ def perf_measure(y_actualVariable, y_hatVariable):
     print ("TP (pred voice, actual voice):{}\nFP (pred voice , actual noise):{}\nTN (pred noise, actual noise):{}\nFN (pred noise, actual voice):{}".format(TP, FP, TN, FN))
 
 def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest/'):
-    def cperrorfiles(errorfilenames,outputdir='../../data/realtest/errorfiles'):
+    def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/realtest/errorfiles'):
         if not os.path.exists(outputdir):
             os.system('mkdir {}'.format(outputdir))
+        idx=0
         for errorfile in errorfilenames:
-            os.system('cp {} {}'.format(errorfile,outputdir))
+            os.system('cp {} {}/{}'.format(errorfile,outputdir,str(idx)+'_'+errorporb[idx]+'.wav'))
+            idx+=1
 
-    def compare(array1,array2,filesTrack):
+    def compare(array1Variable,array2Variable,filesTrack):
+        _,outputVal=torch.max(array1Variable, 1)
+        array1,array2=outputVal.data.numpy(),array2Variable.data.numpy()
         logf=open(datadir+'/badsamples.log','w')
         accu=0.
         errorfilesNoise, errorfilesVoice=[],[]
+        errorNoisePorb,errorVoiceProb=[],[]
         if len(array1)!=len(array2):
             print ('len error')
             return
         for i,a1 in enumerate(array1):
-    #         print (a1,array2[i])
+    
             if a1==array2[i]:
                 accu+=1.
             else:
+                p=torch.nn.functional.softmax(array1Variable[i]).data.numpy()
+                prob='{}_{}'.format(p[0],p[1])
+            
                 if array2[i]==1:
                     logf.write(filesTrack[i]+'\n')
                     errorfilesNoise.append(filesTrack[i])
+                    errorNoisePorb.append(prob)
+
                 if array2[i]==0:
                     logf.write(filesTrack[i]+'\n')
                     errorfilesVoice.append(filesTrack[i])
+                    errorVoiceProb.append(prob)
+
         logf.close()
-        
-        cperrorfiles(errorfilesNoise,'../../data/realtest/errorfilesNoise')
-        cperrorfiles(errorfilesVoice,'../../data/realtest/errorfilesVoice')
+
+        cperrorfiles(errorfilesNoise,errorNoisePorb,'../../data/realtest/errorfilesNoise')
+        cperrorfiles(errorfilesVoice,errorVoiceProb,'../../data/realtest/errorfilesVoice')
 
 
 
-    _,outputVal=torch.max(outputVal, 1)
-    return compare(outputVal.data.numpy(),yvalVariable.data.numpy(),filesTrack)
+    # _,outputVal=torch.max(outputVal, 1)
+    return compare(outputVal,yvalVariable,filesTrack)
 
 
 
