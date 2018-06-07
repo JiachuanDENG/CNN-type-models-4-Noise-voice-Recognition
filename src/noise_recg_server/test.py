@@ -60,7 +60,7 @@ def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest
     def compare(array1,array2,filesTrack):
         logf=open(datadir+'/badsamples.log','w')
         accu=0.
-        errorfiles=[]
+        errorfilesNoise, errorfilesVoice=[],[]
         if len(array1)!=len(array2):
             print ('len error')
             return
@@ -69,10 +69,17 @@ def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest
             if a1==array2[i]:
                 accu+=1.
             else:
-                logf.write(filesTrack[i]+'\n')
-                errorfiles.append(filesTrack[i])
+                if array2[i]==1:
+                    logf.write(filesTrack[i]+'\n')
+                    errorfilesNoise.append(filesTrack[i])
+                if array2[i]==0:
+                    logf.write(filesTrack[i]+'\n')
+                    errorfilesVoice.append(filesTrack[i])
         logf.close()
-        cperrorfiles(errorfiles)
+        
+        cperrorfiles(errorfilesNoise,'../../data/realtest/errorfilesNoise')
+        cperrorfiles(errorfilesVoice,'../../data/realtest/errorfilesVoice')
+
 
 
     _,outputVal=torch.max(outputVal, 1)
