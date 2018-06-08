@@ -50,8 +50,8 @@ def perf_measure(y_actualVariable, y_hatVariable):
 
     print ("TP (pred voice, actual voice):{}\nFP (pred voice , actual noise):{}\nTN (pred noise, actual noise):{}\nFN (pred noise, actual voice):{}".format(TP, FP, TN, FN))
 
-def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest/'):
-    def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/realtest/errorfiles'):
+def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/recordTest/'):
+    def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/recordTest/errorfiles'):
         if not os.path.exists(outputdir):
             os.system('mkdir {}'.format(outputdir))
         idx=0
@@ -91,8 +91,8 @@ def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/realtest
 
         logf.close()
 
-        cperrorfiles(errorfilesNoise,errorNoisePorb,'../../data/realtest/errorfilesNoise') # actual noise
-        cperrorfiles(errorfilesVoice,errorVoiceProb,'../../data/realtest/errorfilesVoice') #actual voice
+        cperrorfiles(errorfilesNoise,errorNoisePorb,'../../data/recordTest/errorfilesNoise') # actual noise
+        cperrorfiles(errorfilesVoice,errorVoiceProb,'../../data/recordTest/errorfilesVoice') #actual voice
 
 
 
@@ -106,8 +106,8 @@ if __name__ == '__main__':
     modelNames=sys.argv[1]
     testPercentage=sys.argv[2]
     modelNameList=modelNames.split(',')
-    wanted_words='testnoisydata15dbnorm,testnoise15db'
-    trainx,trainy,valx,valy,model_settings,trainfiletrack,valfiletrack=dataprocessing.returnData(datadir='../../data/realtest',\
+    wanted_words='voiceprocessed,noiseprocessed'
+    trainx,trainy,valx,valy,model_settings,trainfiletrack,valfiletrack=dataprocessing.returnData(datadir='../../data/recordTest',\
         wanted_words=wanted_words)
     
     testx=np.concatenate((trainx,valx),axis=0)

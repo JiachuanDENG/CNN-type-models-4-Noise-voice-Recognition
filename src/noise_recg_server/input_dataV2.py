@@ -236,6 +236,7 @@ class AudioProcessor(object):
         wav_decoder.sample_rate,
         dct_coefficient_count=model_settings['dct_coefficient_count'])
     print (type(self.mfcc_),'*'*10)
+    
   def set_size(self, mode):
     """Calculates the number of samples in the dataset partition.
 

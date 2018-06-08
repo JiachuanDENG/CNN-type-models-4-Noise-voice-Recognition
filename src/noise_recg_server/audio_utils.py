@@ -103,7 +103,7 @@ def cleanwavPickTrainTest(cleanwavDir,cleanTrainDir,cleanTestDir,trainNum=100,te
 
 def caldbs(sound,wnd):
     dbs=[]
-    wnd=100
+    # wnd=100
     for i in range(len(sound)//wnd):
         dbs.append(sound[i*wnd:(i+1)*wnd].dBFS)
     return dbs

@@ -345,7 +345,7 @@ class CNNAudioOneFpool3(nn.Module):
                 stride=1,
                 kernel_size=(
                             self.model_settings['spectrogram_length'],
-                            5
+                            4
                             )
                     ),
             nn.ReLU()
@@ -358,7 +358,7 @@ class CNNAudioOneFpool3(nn.Module):
         
         self.maxpool1=nn.MaxPool2d(kernel_size=(1,3))
         
-        self.FC1=nn.Linear(648,32)
+        self.FC1=nn.Linear(648,32) #648
         
         self.dropout2=nn.Dropout(dropoutP)
         
@@ -381,7 +381,7 @@ class CNNAudioOneFpool3(nn.Module):
             x=self.dropout1(x)
         x=self.maxpool1(x)
         x=x.view(x.size(0),-1)
-#         print (x.size())
+        # print (x.size())
         
         x=self.FC1(x)
         if isTrain:
