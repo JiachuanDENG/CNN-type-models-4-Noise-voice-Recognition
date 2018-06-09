@@ -12,6 +12,7 @@ import dataprocessing
 import time
 from train import cal_accu as cal_accu
 import os
+import real_sampledDataprocessing
 
 
 def forwardingTime(model,X,y,filetrack):
@@ -21,36 +22,12 @@ def forwardingTime(model,X,y,filetrack):
     start = time.clock()
     outputVariable=model.forwarding(xVariable,isTrain=False)
     print ('Time Consumption :{}'.format(time.clock() - start))
-    print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
-    perf_measure(yVariable,outputVariable)
-    logBadSamples(outputVariable,yVariable,filetrack)
-
-def perf_measure(y_actualVariable, y_hatVariable):
-    _,y_hatVariable=torch.max(y_hatVariable, 1)
-    y_actual=y_actualVariable.data.numpy()
-    y_hat=y_hatVariable.data.numpy()
+    # print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
+    # perf_measure(yVariable,outputVariable)
+    classifyFiles(outputVariable,filetrack)
 
 
-    # noisy voice label 0
-    # noise label 1
-    TP = 0
-    FP = 0
-    TN = 0
-    FN = 0
-
-    for i in range(len(y_hat)): 
-        if y_actual[i]==0 and y_actual[i]==y_hat[i]:
-           TP += 1 # pred voice, actual voice
-        if y_hat[i]==0  and y_actual[i]!=y_hat[i]:
-           FP += 1 # pred voice , actual noise
-        if y_actual[i]==1 and y_actual[i]==y_hat[i]:
-           TN += 1 # pred noise, actual noise
-        if y_hat[i]==1 and y_actual[i]!=y_hat[i]:
-           FN += 1 # pred noise, actual voice
-
-    print ("TP (pred voice, actual voice):{}\nFP (pred voice , actual noise):{}\nTN (pred noise, actual noise):{}\nFN (pred noise, actual voice):{}".format(TP, FP, TN, FN))
-
-def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/recordTest/'):
+def classifyFiles(outputVal,filesTrack):
     def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/recordTest/errorfiles'):
         if not os.path.exists(outputdir):
             os.system('mkdir {}'.format(outputdir))
@@ -59,54 +36,54 @@ def logBadSamples(outputVal,yvalVariable,filesTrack,datadir='../../data/recordTe
             os.system('cp {} {}/{}'.format(errorfile,outputdir,str(idx)+'_'+errorporb[idx]+'.wav'))
             idx+=1
 
-    def compare(array1Variable,array2Variable,filesTrack):
+
+    def classify(array1Variable,filesTrack):
         _,outputVal=torch.max(array1Variable, 1)
-        array1,array2=outputVal.data.numpy(),array2Variable.data.numpy()
-        logf=open(datadir+'/badsamples.log','w')
-        accu=0.
-        errorfilesNoise, errorfilesVoice=[],[]
-        errorNoisePorb,errorVoiceProb=[],[]
-        if len(array1)!=len(array2):
-            print ('len error')
-            return
+        array1=outputVal.data.numpy()
+        noisefiles,voicefiles,noisefilesProb,voicefilesProb=[],[],[],[]
         for i,a1 in enumerate(array1):
-    
-            if a1==array2[i]:
-                accu+=1.
-            else:
-                p=torch.nn.functional.softmax(array1Variable[i]).data.numpy()
-                prob='{}_{}'.format(p[0],p[1])
-            
-                if array2[i]==1:
-                    # actual is voice , predict to be noise
-                    logf.write(filesTrack[i]+'\n')
-                    errorfilesNoise.append(filesTrack[i])
-                    errorNoisePorb.append(prob)
 
-                if array2[i]==0:
-                    #actual is noise, predict to be voice
-                    logf.write(filesTrack[i]+'\n')
-                    errorfilesVoice.append(filesTrack[i])
-                    errorVoiceProb.append(prob)
+            p=torch.nn.functional.softmax(array1Variable[i]).data.numpy()
+            prob='{}_{}'.format(p[0],p[1])
+        
+            if array1[i]==0:
+                #  predict to be voice
+                voicefiles.append(filesTrack[i])
+                voicefilesProb.append(prob)
 
-        logf.close()
-
-        cperrorfiles(errorfilesNoise,errorNoisePorb,'../../data/recordTest/errorfilesNoise') # actual noise
-        cperrorfiles(errorfilesVoice,errorVoiceProb,'../../data/recordTest/errorfilesVoice') #actual voice
+            if array1[i]==1:
+                #predict to be noise
+                noisefiles.append(filesTrack[i])
+                noisefilesProb.append(prob)
 
 
 
-    # _,outputVal=torch.max(outputVal, 1)
-    return compare(outputVal,yvalVariable,filesTrack)
+        cperrorfiles(voicefiles,voicefilesProb,'../../data/recordTest/predictVoice') 
+        cperrorfiles(noisefiles,noisefilesProb,'../../data/recordTest/predictNoise') 
+
+
+    return classify (outputVal,filesTrack)
 
 
 
 
 if __name__ == '__main__':
     modelNames=sys.argv[1]
-    testPercentage=sys.argv[2]
+    filename=sys.argv[2]
+
+    wnd=50
+    targetdb=-26
+    targetDir='../../data/recordTest/'
+
+    realdataprocessor=real_sampledDataprocessing.RealDataProcessor('./','./',wnd,targetdb)
+
+    realdataprocessor.processingfile(filename,targetDir+'testNoisyData15dBNorm/',targetDir+'testNoise15dB/')
+
+
+
+    testPercentage=1.0
     modelNameList=modelNames.split(',')
-    wanted_words='voiceprocessed,noiseprocessed'
+    wanted_words='testnoisydata15dbnorm,testnoise15db'
     trainx,trainy,valx,valy,model_settings,trainfiletrack,valfiletrack=dataprocessing.returnData(datadir='../../data/recordTest',\
         wanted_words=wanted_words)
     

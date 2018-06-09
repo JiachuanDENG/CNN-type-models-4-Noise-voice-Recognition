@@ -2,6 +2,7 @@
 import os
 from pydub import AudioSegment
 import sys
+import random
 class RealDataProcessor(object):
 	def __init__(self,realVoiceDir,realNoiseDir,wnd,targetdb):
 		self.realVoiceDir=realVoiceDir
@@ -36,29 +37,23 @@ class RealDataProcessor(object):
 			normalizedAudio+=audio[i*self.wnd:(i+1)*self.wnd].apply_gain(gaindb)
 		return normalizedAudio
 
-	def saveAudios(self,audios,targetDir):
-		if not os.path.exists(targetDir):
-			os.system('mkdir {}'.format(targetDir))
+	def saveAudios(self,audios,targetDir1,targetDir2):
+		if not os.path.exists(targetDir1):
+			os.system('mkdir {}'.format(targetDir1))
+		if not os.path.exists(targetDir2):
+			os.system('mkdir {}'.format(targetDir2))
 		for i,audio in enumerate(audios):
+			targetDir=random.choice([targetDir1,targetDir2])
 			audio.export(targetDir+str(i)+'.wav',format='wav')
 
 	
 
-	def processingfile(self,file,targetDir):
+	def processingfile(self,file,targetDir1,targetDir2):
 		allAudios=[]
-		self.saveAudios( [self.normalize(audio) for audio in self.sliceWav(file)], targetDir)
+		self.saveAudios( [self.normalize(audio) for audio in self.sliceWav(file)], targetDir1,targetDir2)
 
 		
 
-if __name__ == '__main__':
-	filename=sys.argv[1]
-	wnd=int(sys.argv[2])
-	targetdb=int(sys.argv[3])
-	targetDir=sys.argv[4]
-
-	realdataprocessor=RealDataProcessor('./','./',wnd,targetdb)
-
-	realdataprocessor.processingfile(filename,targetDir)
 
 
 	
