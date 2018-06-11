@@ -31,6 +31,8 @@ def splitTrainTest(olddir,trainDir,testDir,ratio=0.8):
         print ('mkdir {}'.format(testDir))
         print (os.system('mkdir {}'.format(testDir)))
     files=getwavfilename(olddir)
+    
+    shuffle(files)
     trainFiles=files[:int(len(files)*ratio)]
     testFiles=files[int(len(files)*ratio):]
     
@@ -100,10 +102,9 @@ def cleanwavPickTrainTest(cleanwavDir,cleanTrainDir,cleanTestDir,trainNum=100,te
             testsliced+=slicecleanwav(cleanwavDir,cleanTestDir,testfile)
         else:
             break
-
 def caldbs(sound,wnd):
     dbs=[]
-    # wnd=100
+    
     for i in range(len(sound)//wnd):
         dbs.append(sound[i*wnd:(i+1)*wnd].dBFS)
     return dbs
@@ -124,8 +125,7 @@ def mixsoundnoisepair(soundfile,noisefile,wnd,soundDBTarget,snr=15):
     combined=sound.overlay(noise)
     return combined
 
-def mixnoises_sounds(soundfiles,noisefiles,outputDir,\
-    wnd=10,soundDBTarget=-26,snr=15,noiseNum=10,totalSamples=1000):
+def mixnoises_sounds(soundfiles,noisefiles,outputDir,wnd=10,soundDBTarget=-26,snrs=[15],noiseNum=10,totalSamples=1000):
     sampleN=0
     idx=0
     while sampleN<totalSamples:
@@ -133,15 +133,17 @@ def mixnoises_sounds(soundfiles,noisefiles,outputDir,\
         sounds=soundfiles[sampleN:sampleN+noiseNum]
         sampleN+=noiseNum
         for noisefile,soundfile in zip(noises,sounds):
+            snr=random.choice(snrs)
             mixedsound=mixsoundnoisepair(soundfile,noisefile,wnd,soundDBTarget,snr)
             mixedsound.export(outputDir+str(idx)+'.wav', format="wav")
             idx+=1
 
-def generateNormalizedNoiseDir(dataDir,noiseFiles,outputNoiseDir,wnd,noiseDBTarget):
+def generateNormalizedNoiseDir(dataDir,noiseFiles,outputNoiseDir,wnd,noiseDBTargets):
     if not os.path.exists(dataDir+outputNoiseDir):
         os.system('mkdir {}{}'.format(dataDir,outputNoiseDir))
     idx=0
     for noisefile in noiseFiles:
+        noiseDBTarget=random.choice(noiseDBTargets)
         n=normalizeaudio(noisefile,wnd,noiseDBTarget)
         n.export(dataDir+outputNoiseDir+str(idx)+'.wav',format='wav')
         idx+=1
@@ -151,7 +153,7 @@ def generateNormalizedNoiseDir(dataDir,noiseFiles,outputNoiseDir,wnd,noiseDBTarg
 def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,\
                  outputTrainDir,outputTestDir,\
                  outputNoiseTrainDir,outputNoiseTestDir,\
-                 wnd,soundDBTarget,snr):
+                 wnd,soundDBTarget,snrs):
     if not os.path.exists(dataDir+outputTestDir):
         os.system('mkdir {}{}'.format(dataDir,outputTestDir))
     if not os.path.exists(dataDir+outputTrainDir):
@@ -170,40 +172,73 @@ def generateData(dataDir,voiceTrainDir,voiceTestDir,noiseTrains,noiseTests,\
     shuffle(noiseTestFiles)
     shuffle(noiseTrainFiles)
     
-    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,wnd,soundDBTarget,snr,\
-        noiseNum=20,totalSamples=2000)
-    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,wnd,soundDBTarget,snr,\
-        noiseNum=20,totalSamples=500)
+    mixnoises_sounds(voiceTrainFiles,noiseTrainFiles,dataDir+outputTrainDir,wnd,soundDBTarget,snrs,noiseNum=20,totalSamples=2000)
+    mixnoises_sounds(voiceTestFiles,noiseTestFiles,dataDir+outputTestDir,wnd,soundDBTarget,snrs,noiseNum=20,totalSamples=500)
     
-    generateNormalizedNoiseDir(dataDir,noiseTrainFiles,outputNoiseTrainDir,wnd,noiseDBTarget=soundDBTarget-snr)
-    generateNormalizedNoiseDir(dataDir,noiseTestFiles,outputNoiseTestDir,wnd,noiseDBTarget=soundDBTarget-snr)
+    generateNormalizedNoiseDir(dataDir,noiseTrainFiles,outputNoiseTrainDir,wnd,noiseDBTargets=[soundDBTarget])
+    generateNormalizedNoiseDir(dataDir,noiseTestFiles,outputNoiseTestDir,wnd,noiseDBTargets=[soundDBTarget])
     
     
-        
-if __name__ == '__main__':
+         
 
-    # splitTrainTest('./freesound_noise/crowd/','./processed/crowdTrain/','./processed/crowdTest/')
-    # splitTrainTest('./freesound_noise/keyboard/','./processed/keyboardTrain/','./processed/keyboardTest/')
-    # splitTrainTest('./freesound_noise/lawnmower/','./processed/lawnmowerTrain/','./processed/lawnmowerTest/')
-    # splitTrainTest('./freesound_noise/dog/','./processed/dogTrain/','./processed/dogTest/')
-    # splitTrainTest('./freesound_noise/mouseclick/','./processed/mouseclickTrain/','./processed/mouseclickTest/')
-    # splitTrainTest('./freesound_noise/passingcar/','./processed/passingcarTrain/','./processed/passingcarTest/')
-    
-    # cleanwavPickTrainTest('/Users/dengjiachuan/Desktop/audioData/AURORA4/aurora4/train_si84_clean/',\
-    #                  './processed/cleanTrain/',\
-    #                  './processed/cleanTest/',
-    #                  2000,500)
-    generateData('/Users/dengjiachuan/Desktop/zoom_intern/noise_recog/data/processed/',\
+if __name__ == '__main__':
+      
+    splitTrainTest('./freesound_noise/crowd/','./processed/crowdTrain/','./processed/crowdTest/')
+    splitTrainTest('./freesound_noise/keyboard/','./processed/keyboardTrain/','./processed/keyboardTest/')
+    splitTrainTest('./freesound_noise/lawnmower/','./processed/lawnmowerTrain/','./processed/lawnmowerTest/')
+    splitTrainTest('./freesound_noise/dog/','./processed/dogTrain/','./processed/dogTest/')
+    splitTrainTest('./freesound_noise/mouseclick/','./processed/mouseclickTrain/','./processed/mouseclickTest/')
+    splitTrainTest('./freesound_noise/passingcar/','./processed/passingcarTrain/','./processed/passingcarTest/')
+    splitTrainTest('./freesound_noise/caralarm/','./processed/caralarmTrain/','./processed/caralarmTest/')
+    splitTrainTest('./freesound_noise/plane/','./processed/planeTrain/','./processed/planeTest/')
+    cleanwavPickTrainTest('/Users/dengjiachuan/Desktop/audioData/AURORA4/aurora4/train_si84_clean/',\
+                     './processed/cleanTrain/',\
+                     './processed/cleanTest/',
+                     2000,500)
+    generateData('./processed/',\
             'cleanTrain/',\
             'cleanTest/',\
-            ['crowdTrain/','dogTrain/','keyboardTrain/','lawnmowerTrain/','mouseclickTrain/'],\
-            ['crowdTest/','dogTest/','keyboardTest/','lawnmowerTest/','mouseclickTest/'],\
+            ['dogTrain/','keyboardTrain/','lawnmowerTrain/','mouseclickTrain/','caralarmTrain/','planeTrain/'],\
+            ['dogTest/','keyboardTest/','lawnmowerTest/','mouseclickTest/','caralarmTest/','planeTest/'],\
             'trainNoisyData15dB/','testNoisyData15dB/',\
              'trainNoise15dB/','testNoise15dB/',\
-            wnd=10,soundDBTarget=-26,snr=15)
+            wnd=50,soundDBTarget=-26,snrs=[15,10,5])
+
+    files=[f for f in os.listdir('/Users/dengjiachuan/Desktop/realmeet3/') if '.wav' in f]
+    samplefiles=random.sample(files,200)
+
+    for f in samplefiles:
+        os.system('cp {}{} {}'.format('/Users/dengjiachuan/Desktop/realmeet3/',f,'/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/testNoisyData15dB/'))
+
+    
+    files=[f for f in os.listdir('/Users/dengjiachuan/Desktop/realmeet2/') if '.wav' in f]
+    samplefiles=random.sample(files,150)
+
+    for f in samplefiles:
+        os.system('cp {}{} {}'.format('/Users/dengjiachuan/Desktop/realmeet2/',f,'/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/testNoisyData15dB/'))
 
 
+    files=[f for f in os.listdir('/Users/dengjiachuan/Desktop/realmeet1/') if '.wav' in f]
+    samplefiles=random.sample(files,200)
 
+    for f in samplefiles:
+        os.system('cp {}{} {}'.format('/Users/dengjiachuan/Desktop/realmeet1/',f,'/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/testNoisyData15dB/'))
+
+    
+    origdir='/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/testNoisyData15dB/'
+    noiseFiles=[origdir+f for f in os.listdir(origdir) if '.wav' in f]
+
+    generateNormalizedNoiseDir('/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/',\
+                               noiseFiles,outputNoiseDir='testNoisyData15dBNorm/',wnd=50,noiseDBTargets=[-26])
+
+
+    files=[f for f in os.listdir('/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/selfbuildDataTest15dB/testNoisyData15dB/') if '.wav' in f]
+    samplefiles=random.sample(files,150)
+
+    for f in samplefiles:
+        fn=f.split('.')[0]
+        fn=fn+"self.wav"
+        os.system('cp {}{} {}{}'.format('/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/selfbuildDataTest15dB/testNoisyData15dB/',f,'/Users/dengjiachuan/Desktop/zoom_intern_server/noise_recog/data/realtest/testNoisyData15dBNorm/',fn))
 
 
 
