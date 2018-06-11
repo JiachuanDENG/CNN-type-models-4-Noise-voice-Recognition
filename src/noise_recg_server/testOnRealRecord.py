@@ -15,7 +15,7 @@ import os
 import real_sampledDataprocessing
 
 
-def forwardingTime(model,X,y,filetrack):
+def forwardingTime(model,X,y,filetrack,threshold):
     xVariable=Variable(torch.from_numpy(X))
     yVariable=Variable(torch.from_numpy(y))
 
@@ -24,10 +24,10 @@ def forwardingTime(model,X,y,filetrack):
     print ('Time Consumption :{}'.format(time.clock() - start))
     # print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
     # perf_measure(yVariable,outputVariable)
-    classifyFiles(outputVariable,filetrack)
+    classifyFiles(outputVariable,filetrack,threshold)
 
 
-def classifyFiles(outputVal,filesTrack):
+def classifyFiles(outputVal,filesTrack,threshold):
     def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/recordTest/errorfiles'):
         if not os.path.exists(outputdir):
             os.system('mkdir {}'.format(outputdir))
@@ -37,7 +37,7 @@ def classifyFiles(outputVal,filesTrack):
             idx+=1
 
 
-    def classify(array1Variable,filesTrack):
+    def classify(array1Variable,filesTrack,threshold):
         _,outputVal=torch.max(array1Variable, 1)
         array1=outputVal.data.numpy()
         noisefiles,voicefiles,noisefilesProb,voicefilesProb=[],[],[],[]
@@ -51,7 +51,7 @@ def classifyFiles(outputVal,filesTrack):
                 voicefiles.append(filesTrack[i])
                 voicefilesProb.append(prob)
 
-            if array1[i]==1:
+            if array1[i]==1 and p[1]>=threshold:
                 #predict to be noise
                 noisefiles.append(filesTrack[i])
                 noisefilesProb.append(prob)
@@ -62,7 +62,7 @@ def classifyFiles(outputVal,filesTrack):
         cperrorfiles(noisefiles,noisefilesProb,'../../data/recordTest/predictNoise') 
 
 
-    return classify (outputVal,filesTrack)
+    return classify (outputVal,filesTrack,threshold)
 
 
 
@@ -70,6 +70,7 @@ def classifyFiles(outputVal,filesTrack):
 if __name__ == '__main__':
     modelNames=sys.argv[1]
     filename=sys.argv[2]
+    threshold=float(sys.argv[3]) 
 
     wnd=50
     targetdb=-26
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(modelSaveFilePath))
         print ('*'*10,modelName,'*'*10)
         # forwardingTime(model,testx[:1],testy[:1])
-        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])],filetrack[:int(float(testPercentage)*testx.shape[0])])
+        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])],filetrack[:int(float(testPercentage)*testx.shape[0])],threshold)
 
 
 
