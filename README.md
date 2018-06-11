@@ -17,7 +17,7 @@ With [MobileNet](https://arxiv.org/pdf/1704.04861.pdf) Tricks applied, so that m
 
 ## Run codes:
 **training**: python3 train.py [model name] </br>
-**testing**: python3 test.py [model name] [percentage of whole test data want to use]
+**testing**: python3 test.py [model name] [percentage of whole test data want to use]</br>
 **testing on real record wav**: python3 testOnRealRecord.py [model name] [wav file path]
 
 ## Details:
