@@ -37,20 +37,28 @@ class RealDataProcessor(object):
 			normalizedAudio+=audio[i*self.wnd:(i+1)*self.wnd].apply_gain(gaindb)
 		return normalizedAudio
 
-	def saveAudios(self,audios,targetDir1,targetDir2):
+	def saveAudios(self,audios,origAudios,targetDir1,targetDir2,origAudioDir):
+		trackingMap=dict()
 		if not os.path.exists(targetDir1):
 			os.system('mkdir {}'.format(targetDir1))
 		if not os.path.exists(targetDir2):
 			os.system('mkdir {}'.format(targetDir2))
+		if not os.path.exists(origAudioDir):
+			os.system('mkdir {}'.format(origAudioDir))
 		for i,audio in enumerate(audios):
 			targetDir=random.choice([targetDir1,targetDir2])
 			audio.export(targetDir+str(i)+'.wav',format='wav')
+			origAudios[i].export(origAudioDir+str(i*500/1000)+'.wav',format='wav')
+			trackingMap[targetDir+str(i)+'.wav']=origAudioDir+str(i*500/1000)+'.wav'
+		return trackingMap
+
 
 	
 
-	def processingfile(self,file,targetDir1,targetDir2):
+	def processingfile(self,file,targetDir1,targetDir2,origAudioDir):
 		allAudios=[]
-		self.saveAudios( [self.normalize(audio) for audio in self.sliceWav(file)], targetDir1,targetDir2)
+		origAudios=self.sliceWav(file)
+		return self.saveAudios( [self.normalize(audio) for audio in origAudios],  origAudios,targetDir1,targetDir2,origAudioDir)
 
 		
 

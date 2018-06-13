@@ -15,7 +15,7 @@ import os
 import real_sampledDataprocessing
 
 
-def forwardingTime(model,X,y,filetrack,threshold):
+def forwardingTime(model,X,y,filetrack,trackingMap,threshold):
     xVariable=Variable(torch.from_numpy(X))
     yVariable=Variable(torch.from_numpy(y))
 
@@ -24,20 +24,21 @@ def forwardingTime(model,X,y,filetrack,threshold):
     print ('Time Consumption :{}'.format(time.clock() - start))
     # print ('accuracy:{}'.format(cal_accu(outputVariable,yVariable)),'val pos:neg--',len(y[y==1])/len(y))
     # perf_measure(yVariable,outputVariable)
-    classifyFiles(outputVariable,filetrack,threshold)
+    classifyFiles(outputVariable,filetrack,trackingMap,threshold)
 
 
-def classifyFiles(outputVal,filesTrack,threshold):
+def classifyFiles(outputVal,filesTrack,trackingMap,threshold):
     def cperrorfiles(errorfilenames,errorporb,outputdir='../../data/recordTest/errorfiles'):
         if not os.path.exists(outputdir):
             os.system('mkdir {}'.format(outputdir))
         idx=0
         for errorfile in errorfilenames:
-            os.system('cp {} {}/{}'.format(errorfile,outputdir,str(idx)+'_'+errorporb[idx]+'.wav'))
+            filename=errorfile.split('/')[-1].split('.wav')[0]
+            os.system('cp {} {}/{}'.format(errorfile,outputdir,filename+'_'+errorporb[idx]+'.wav'))
             idx+=1
 
 
-    def classify(array1Variable,filesTrack,threshold):
+    def classify(array1Variable,filesTrack,trackingMap,threshold):
         _,outputVal=torch.max(array1Variable, 1)
         array1=outputVal.data.numpy()
         noisefiles,voicefiles,noisefilesProb,voicefilesProb=[],[],[],[]
@@ -48,12 +49,13 @@ def classifyFiles(outputVal,filesTrack,threshold):
         
             if array1[i]==0:
                 #  predict to be voice
-                voicefiles.append(filesTrack[i])
+                voicefiles.append(trackingMap[filesTrack[i]])
                 voicefilesProb.append(prob)
 
             if array1[i]==1 and p[1]>=threshold:
                 #predict to be noise
-                noisefiles.append(filesTrack[i])
+
+                noisefiles.append(trackingMap[filesTrack[i]])
                 noisefilesProb.append(prob)
 
 
@@ -62,7 +64,7 @@ def classifyFiles(outputVal,filesTrack,threshold):
         cperrorfiles(noisefiles,noisefilesProb,'../../data/recordTest/predictNoise') 
 
 
-    return classify (outputVal,filesTrack,threshold)
+    return classify (outputVal,filesTrack,trackingMap,threshold)
 
 
 
@@ -78,9 +80,9 @@ if __name__ == '__main__':
 
     realdataprocessor=real_sampledDataprocessing.RealDataProcessor('./','./',wnd,targetdb)
 
-    realdataprocessor.processingfile(filename,targetDir+'testNoisyData15dBNorm/',targetDir+'testNoise15dB/')
+    wavtrackingMap=realdataprocessor.processingfile(filename,targetDir+'testNoisyData15dBNorm/',targetDir+'testNoise15dB/','../../data/origwavDir/')
 
-
+    # print (wavtrackingMap)
 
     testPercentage=1.0
     modelNameList=modelNames.split(',')
@@ -99,7 +101,8 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(modelSaveFilePath))
         print ('*'*10,modelName,'*'*10)
         # forwardingTime(model,testx[:1],testy[:1])
-        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])],filetrack[:int(float(testPercentage)*testx.shape[0])],threshold)
+        # print (filetrack)
+        forwardingTime(model,testx[:int(float(testPercentage)*testx.shape[0])],testy[:int(float(testPercentage)*testx.shape[0])],filetrack[:int(float(testPercentage)*testx.shape[0])],wavtrackingMap,threshold)
 
 
 
