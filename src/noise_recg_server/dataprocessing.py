@@ -154,7 +154,7 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   parser.add_argument(
     '--clip_duration_ms',
     type=int,
-    default=1000,
+    default=500,
     help='Expected duration in milliseconds of the wavs',)
   parser.add_argument(
     '--window_size_ms',

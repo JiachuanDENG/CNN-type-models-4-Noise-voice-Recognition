@@ -28,8 +28,8 @@ def cal_accu(outputVal,yvalVariable):
     return compare(outputVal.data.numpy(),yvalVariable.data.numpy())
     
 
-BATCH_SIZE=128
-EPOCH=45
+BATCH_SIZE=256
+EPOCH=50
 
 
 

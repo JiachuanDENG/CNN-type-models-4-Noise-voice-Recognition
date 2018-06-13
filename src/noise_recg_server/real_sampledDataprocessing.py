@@ -16,9 +16,9 @@ class RealDataProcessor(object):
 	def sliceWav(self,wavfile):
 		newAudios=[]
 		audio=AudioSegment.from_wav(wavfile)
-		t1,t2=0,len(audio)//1000
+		t1,t2=0,len(audio)//500
 		while t1<t2:
-			newAudios.append(audio[t1*1000:(t1+1)*1000])
+			newAudios.append(audio[t1*500:(t1+1)*500])
 			t1+=1
 		return newAudios
 
