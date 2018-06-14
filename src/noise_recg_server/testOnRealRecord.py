@@ -13,6 +13,7 @@ import time
 from train import cal_accu as cal_accu
 import os
 import real_sampledDataprocessing
+from pydub import AudioSegment
 
 
 def forwardingTime(model,X,y,filetrack,trackingMap,threshold):
@@ -37,6 +38,16 @@ def classifyFiles(outputVal,filesTrack,trackingMap,threshold):
             os.system('cp {} {}/{}'.format(errorfile,outputdir,filename+'_'+errorporb[idx]+'.wav'))
             idx+=1
 
+    def comparatorHelper(s1):
+        return float(s1.split('_')[0])
+    
+    def mixingSegments(segmentDir,name):
+        segmentfiles=[f for f in os.listdir(segmentDir) if '.wav' in f]
+        segmentfiles=sorted(segmentfiles,key=comparatorHelper) 
+        s=AudioSegment.empty()
+        for file in segmentfiles:
+            s+=AudioSegment.from_file(segmentDir+file)
+        s.export('../../data/recordTest/'+name+'.wav', format="wav")
 
     def classify(array1Variable,filesTrack,trackingMap,threshold):
         _,outputVal=torch.max(array1Variable, 1)
@@ -62,7 +73,9 @@ def classifyFiles(outputVal,filesTrack,trackingMap,threshold):
 
         cperrorfiles(voicefiles,voicefilesProb,'../../data/recordTest/predictVoice') 
         cperrorfiles(noisefiles,noisefilesProb,'../../data/recordTest/predictNoise') 
-
+        mixingSegments('../../data/recordTest/predictVoice/','voice')
+        mixingSegments('../../data/recordTest/predictNoise/','noise')
+        
 
     return classify (outputVal,filesTrack,trackingMap,threshold)
 
