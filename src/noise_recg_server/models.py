@@ -316,6 +316,7 @@ class CNNAudioLowLatencyMobile(nn.Module):
                 self.model_settings['spectrogram_length'],
                 self.model_settings['dct_coefficient_count']
                 )
+
         x=self.conv1(x)
         if isTrain:
             x=self.dropout1(x)
@@ -376,12 +377,13 @@ class CNNAudioOneFpool3(nn.Module):
                  self.model_settings['spectrogram_length'],
                  self.model_settings['dct_coefficient_count']
                 )
+        # print (x.size())
         x=self.conv1(x)
         if isTrain:
             x=self.dropout1(x)
         x=self.maxpool1(x)
         x=x.view(x.size(0),-1)
-        # print (x.size())
+        print (x.size())
         
         x=self.FC1(x)
         if isTrain:
@@ -451,7 +453,7 @@ class CNNAudioOneFpool3Mobile(nn.Module):
             x=self.dropout1(x)
         x=self.maxpool1(x)
         x=x.view(x.size(0),-1)
-#         print (x.size())
+        print (x.size())
         
         x=self.FC1(x)
         if isTrain:

@@ -16,9 +16,9 @@ class RealDataProcessor(object):
 	def sliceWav(self,wavfile):
 		newAudios=[]
 		audio=AudioSegment.from_wav(wavfile)
-		t1,t2=0,len(audio)//500
+		t1,t2=0,len(audio)//250
 		while t1<t2:
-			newAudios.append(audio[t1*500:(t1+1)*500])
+			newAudios.append(audio[t1*250:(t1+1)*250])
 			t1+=1
 		return newAudios
 
@@ -48,8 +48,8 @@ class RealDataProcessor(object):
 		for i,audio in enumerate(audios):
 			targetDir=random.choice([targetDir1,targetDir2])
 			audio.export(targetDir+str(i)+'.wav',format='wav')
-			origAudios[i].export(origAudioDir+str(i*500/1000)+'.wav',format='wav')
-			trackingMap[targetDir+str(i)+'.wav']=origAudioDir+str(i*500/1000)+'.wav'
+			origAudios[i].export(origAudioDir+str(i*250/1000)+'.wav',format='wav')
+			trackingMap[targetDir+str(i)+'.wav']=origAudioDir+str(i*250/1000)+'.wav'
 		return trackingMap
 
 

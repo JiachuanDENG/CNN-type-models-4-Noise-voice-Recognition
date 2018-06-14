@@ -132,7 +132,7 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   parser.add_argument(
     '--time_shift_ms',
     type=float,
-    default=100.0,
+    default=20,    #---- previously 100
     help="""\
     Range to randomly shift the training audio by in time.
     """)
@@ -154,7 +154,7 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   parser.add_argument(
     '--clip_duration_ms',
     type=int,
-    default=500,
+    default=250,
     help='Expected duration in milliseconds of the wavs',)
   parser.add_argument(
     '--window_size_ms',

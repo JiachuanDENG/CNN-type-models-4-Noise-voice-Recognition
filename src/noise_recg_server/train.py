@@ -28,7 +28,7 @@ def cal_accu(outputVal,yvalVariable):
     return compare(outputVal.data.numpy(),yvalVariable.data.numpy())
     
 
-BATCH_SIZE=256
+BATCH_SIZE=512
 EPOCH=50
 
 
@@ -99,6 +99,7 @@ if __name__ == '__main__':
     trainx,trainy,valx,valy,model_settings,_,__=dataprocessing.returnData(datadir='../../data/selfbuildData15dB/',\
         wanted_words=wanted_words)
 
+    # print (trainx.shape,trainy.shape)
     model=models.selectingModel(modelName,model_settings,classN=len(wanted_words.split(',')))
 
 
