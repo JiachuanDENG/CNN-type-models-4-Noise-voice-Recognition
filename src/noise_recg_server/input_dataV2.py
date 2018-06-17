@@ -316,6 +316,8 @@ class AudioProcessor(object):
 
       # Run the graph to produce the output audio.
       data[i - offset, :] = sess.run(self.mfcc_, feed_dict=input_dict).flatten()
+     
+      # data[i - offset, :] = sess.run(self.mfcc_, feed_dict=input_dict)
       label_index = self.word_to_index[sample['label']]
       labels[i - offset] = label_index
       filenamesTrack.append(sample['file'])

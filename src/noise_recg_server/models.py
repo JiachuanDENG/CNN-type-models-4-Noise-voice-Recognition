@@ -23,7 +23,7 @@ import math
 
 import tensorflow as tf
 import torch
-import torch
+
 import torch.utils.data as Data
 import torch.autograd as autograd
 import torch.nn as nn
@@ -379,9 +379,12 @@ class CNNAudioOneFpool3(nn.Module):
                 )
         # print (x.size())
         x=self.conv1(x)
+        # print (x.size())
         if isTrain:
             x=self.dropout1(x)
         x=self.maxpool1(x)
+        # print (x.size())
+        # print ('*'*10)
         x=x.view(x.size(0),-1)
         print (x.size())
         
@@ -465,6 +468,83 @@ class CNNAudioOneFpool3Mobile(nn.Module):
         
         return x
 
+class CNNAudioOneFpool3RNN(nn.Module):
+    def __init__(self, model_settings,classN,dropoutP=0.5):
+        super(CNNAudioOneFpool3RNN,self).__init__()
+        self.model_settings=model_settings
+        self.classN=classN
+        self.conv1=nn.Sequential(
+            nn.Conv2d(
+                in_channels=1,
+                out_channels=54,
+                stride=1,
+                kernel_size=(
+                            self.model_settings['spectrogram_length'],
+                            4
+                            )
+                    ),
+            nn.ReLU()
+            
+            
+        )
+        self.hidden_dim=14
+        self.lstm_layer = nn.LSTM(self.model_settings['dct_coefficient_count'],self.hidden_dim // 2,
+                            num_layers=1, bidirectional=True)
+        
+        
+        self.dropout1=nn.Dropout(dropoutP)
+        
+        self.maxpool1=nn.MaxPool2d(kernel_size=(1,3))
+        
+        self.FC1=nn.Linear(662,32) #648
+        
+        self.dropout2=nn.Dropout(dropoutP)
+        
+        self.FC2=nn.Linear(32,128)
+        
+        self.dropout3=nn.Dropout(dropoutP)
+        
+        self.FC3=nn.Linear(128,self.classN)
+        
+       
+        
+    def forwarding(self,x,isTrain=True):
+        xrnn=x.view(self.model_settings['spectrogram_length'],-1,self.model_settings['dct_coefficient_count'])
+        rnnbatchSize=xrnn.size(1)
+        hidden_cell=(autograd.Variable(torch.randn(2,rnnbatchSize,self.hidden_dim//2)),
+                autograd.Variable(torch.randn(2,rnnbatchSize,self.hidden_dim//2)))
+        lstm_features,hidden_cell=self.lstm_layer(xrnn,hidden_cell)
+        # print ('lstm_feature size',lstm_features[-1].size())
+        # lstm_features=lstm_features.view(len(sentence),self.hidden_dim)
+
+        
+        xcnn=x.view(-1,
+                 1,
+                 self.model_settings['spectrogram_length'],
+                 self.model_settings['dct_coefficient_count']
+                )
+        # print (x.size())
+        xcnn=self.conv1(xcnn)
+        # print (x.size())
+        if isTrain:
+            xcnn=self.dropout1(xcnn)
+        xcnn=self.maxpool1(xcnn)
+        # print (x.size())
+        # print ('*'*10)
+        xcnn=xcnn.view(xcnn.size(0),-1)
+        # print  (xcnn.size(),lstm_features[-1].size())
+        x=torch.cat((xcnn,lstm_features[-1]),dim=1)
+        # print (x.size())
+        x=self.FC1(x)
+        if isTrain:
+            x=self.dropout2(x)
+        x=self.FC2(x)
+        if isTrain:
+            x=self.dropout3(x)
+        x=self.FC3(x)
+        
+        return x
+
 def selectingModel(modelName,model_settings,classN):
   if modelName=='cnn':
     model=CNNAudio(model_settings,classN)
@@ -478,6 +558,8 @@ def selectingModel(modelName,model_settings,classN):
     model=CNNAudioOneFpool3(model_settings,classN)
   elif modelName=='cnnOneFpool3Mobile':
     model=CNNAudioOneFpool3Mobile(model_settings,classN)
+  elif modelName=='cnnOneFpool3RNN':
+    model=CNNAudioOneFpool3RNN(model_settings,classN)
   else:
     print ('you should select model name from:')
     print ('1. cnn\n2. cnnMobile\n3. cnnLowLatency\n4. cnnLowLatencyMobile\n 5. cnnOneFpool3\n6. cnnOneFpool3Mobile\n')
