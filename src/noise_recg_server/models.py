@@ -23,7 +23,7 @@ import math
 
 import tensorflow as tf
 import torch
-
+import torch
 import torch.utils.data as Data
 import torch.autograd as autograd
 import torch.nn as nn
@@ -150,11 +150,11 @@ class CNNAudioLowLatency(nn.Module):
         self.FC3=nn.Linear(128,self.classN)
         
     def forwarding(self,x,isTrain=True):
-        x=x.view(-1,
-                 1,
-                self.model_settings['spectrogram_length'],
-                self.model_settings['dct_coefficient_count']
-                )
+        # x=x.view(-1,
+        #          1,
+        #         self.model_settings['spectrogram_length'],
+        #         self.model_settings['dct_coefficient_count']
+        #         )
         x=self.conv1(x)
         if isTrain:
             x=self.dropout1(x)
@@ -248,12 +248,12 @@ class CNNAudioMobile(nn.Module):
         
         
     def forwarding(self,x,isTrain=True):
-        x=x.view(-1,
-                 1,
-#                  self.model_setting['spectrogram_length'],
-                 self.model_setting['dct_coefficient_count'],
-                self.model_setting['spectrogram_length']
-                )
+#         x=x.view(-1,
+#                  1,
+# #                  self.model_setting['spectrogram_length'],
+#                  self.model_setting['dct_coefficient_count'],
+#                 self.model_setting['spectrogram_length']
+#                 )
         x=self.conv1(x)
         if isTrain:
             x=self.dropout1(x)
@@ -311,18 +311,18 @@ class CNNAudioLowLatencyMobile(nn.Module):
         self.FC3=nn.Linear(128,self.classN)
         
     def forwarding(self,x,isTrain=True):
-        x=x.view(-1,
-                 1,
-                self.model_settings['spectrogram_length'],
-                self.model_settings['dct_coefficient_count']
-                )
+        # x=x.view(-1,
+        #          1,
+        #         self.model_settings['spectrogram_length'],
+        #         self.model_settings['dct_coefficient_count']
+        #         )
 
         x=self.conv1(x)
         if isTrain:
             x=self.dropout1(x)
         
         x=x.view(x.size(0),-1)
-#         print (x.size())
+        print (x.size())
         
         x=self.FC1(x)
         if isTrain:
@@ -359,41 +359,32 @@ class CNNAudioOneFpool3(nn.Module):
         
         self.maxpool1=nn.MaxPool2d(kernel_size=(1,3))
         
-        self.FC1=nn.Linear(648,32) #648
+        self.FC1=nn.Linear(648,128) #648
         
         self.dropout2=nn.Dropout(dropoutP)
+
         
-        self.FC2=nn.Linear(32,128)
+        self.FC2=nn.Linear(128,128)
         
         self.dropout3=nn.Dropout(dropoutP)
         
         self.FC3=nn.Linear(128,self.classN)
-        
+
        
         
     def forwarding(self,x,isTrain=True):
-        x=x.view(-1,
-                 1,
-                 self.model_settings['spectrogram_length'],
-                 self.model_settings['dct_coefficient_count']
-                )
-        # print (x.size())
+
         x=self.conv1(x)
-        # print (x.size())
         if isTrain:
             x=self.dropout1(x)
         x=self.maxpool1(x)
-        # print (x.size())
-        # print ('*'*10)
         x=x.view(x.size(0),-1)
-        print (x.size())
+
         
         x=self.FC1(x)
         if isTrain:
             x=self.dropout2(x)
-        x=self.FC2(x)
-        if isTrain:
-            x=self.dropout3(x)
+        # note that FC2 is removed, it matters little on accuracy whether FC2 is included or not, but save some computing time
         x=self.FC3(x)
         
         return x
@@ -487,8 +478,8 @@ class CNNAudioOneFpool3RNN(nn.Module):
             
             
         )
-        self.hidden_dim=14
-        self.lstm_layer = nn.LSTM(self.model_settings['dct_coefficient_count'],self.hidden_dim // 2,
+        self.hidden_dim=30
+        self.lstm_layer = nn.LSTM(self.model_settings['dct_coefficient_count'],self.hidden_dim//2,
                             num_layers=1, bidirectional=True)
         
         
@@ -496,15 +487,15 @@ class CNNAudioOneFpool3RNN(nn.Module):
         
         self.maxpool1=nn.MaxPool2d(kernel_size=(1,3))
         
-        self.FC1=nn.Linear(662,32) #648
+        self.FC1=nn.Linear(648,128) #648
         
         self.dropout2=nn.Dropout(dropoutP)
         
-        self.FC2=nn.Linear(32,128)
+        self.FC2=nn.Linear(128,32)
         
         self.dropout3=nn.Dropout(dropoutP)
         
-        self.FC3=nn.Linear(128,self.classN)
+        self.FC3=nn.Linear(62,self.classN)
         
        
         
@@ -523,7 +514,7 @@ class CNNAudioOneFpool3RNN(nn.Module):
                  self.model_settings['spectrogram_length'],
                  self.model_settings['dct_coefficient_count']
                 )
-        # print (x.size())
+        # print (xcnn.size())
         xcnn=self.conv1(xcnn)
         # print (x.size())
         if isTrain:
@@ -532,15 +523,16 @@ class CNNAudioOneFpool3RNN(nn.Module):
         # print (x.size())
         # print ('*'*10)
         xcnn=xcnn.view(xcnn.size(0),-1)
-        # print  (xcnn.size(),lstm_features[-1].size())
-        x=torch.cat((xcnn,lstm_features[-1]),dim=1)
+        # print  (xcnn.size())
+        
         # print (x.size())
-        x=self.FC1(x)
+        xcnn=self.FC1(xcnn)
         if isTrain:
-            x=self.dropout2(x)
-        x=self.FC2(x)
+            xcnn=self.dropout2(xcnn)
+        xcnn=self.FC2(xcnn)
         if isTrain:
-            x=self.dropout3(x)
+            xcnn=self.dropout3(xcnn)
+        x=torch.cat((xcnn,lstm_features[-1]),dim=1)
         x=self.FC3(x)
         
         return x

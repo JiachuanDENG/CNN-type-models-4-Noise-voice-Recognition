@@ -29,7 +29,7 @@ def cal_accu(outputVal,yvalVariable):
     
 
 BATCH_SIZE=512
-EPOCH=50
+EPOCH=45
 
 
 
@@ -37,12 +37,10 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
     modelSaveFilePath='./{}modelTrain.pkl'.format(modelName)
     x_train_tensor,y_train_tensor=torch.from_numpy(xtrain),torch.from_numpy(ytrain)
     x_val_tensor,y_val_tensor=torch.from_numpy(xval),torch.from_numpy(yval)
-            
-#   xvalVariable=autograd.Variable(x_val_tensor)
-#   yvalVariable=autograd.Variable(y_val_tensor) 
     
     torch_dataset=Data.TensorDataset(x_train_tensor,y_train_tensor)
 
+    #use dataloader to train model in batch
     loader=Data.DataLoader(
         dataset=torch_dataset,
         batch_size=batch_size,
@@ -50,6 +48,7 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
         num_workers=2
     )
 
+    # can load model trained last time and continuouly train the model if parameter "loadModels" is True
     if loadModels :
         print ('model loaded')
         cnnAudio.load_state_dict(torch.load(modelSaveFilePath))
@@ -58,7 +57,7 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
     for epoch in range(epochNum):
         print ('**********EPOCH',epoch,'*************')
         for step,(x_,y_) in enumerate(loader):
-            # print step
+            # train model in batch, batch size is defined in BATCH_SIZE
             bx=autograd.Variable(x_)
             by=autograd.Variable(y_)
           
@@ -69,8 +68,6 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
             accu=cal_accu(output,by)
             
             if step%10==0:
-#               print ('training loss:',loss.data.numpy()[0])
-#               print ('training accuracy:',accu)
                 valindices = list(range(0,xval.shape[0]))
                 np.random.shuffle(valindices)
                 valx=xval[valindices][:batch_size]
@@ -80,13 +77,12 @@ def trainIter(xtrain,ytrain,xval,yval,cnnAudio,optimizer,loss_func,modelName,bat
                 
                 outputVal=cnnAudio.forwarding(valxVariable,isTrain=False)
                 accuval=cal_accu(outputVal,valyVariable) 
+                # print out accuracy of training set and test set every 10 batches
                 print ('training accuracy:',accu,'val accuracy:',accuval,'val pos:neg--',len(valy[valy==1])/len(valy))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             
-
-#       print ('val accuracy:',accuval)
 
         
         torch.save(cnnAudio.state_dict(),modelSaveFilePath)
@@ -96,16 +92,17 @@ if __name__ == '__main__':
     modelName=sys.argv[1]
 
     wanted_words='trainnoisydata15db,trainnoise15db'
+
+    # train: val=9:1 (no test set is used here)
     trainx,trainy,valx,valy,model_settings,_,__=dataprocessing.returnData(datadir='../../data/selfbuildData15dB/',\
         wanted_words=wanted_words)
 
-    # print (trainx.shape,trainy.shape)
     model=models.selectingModel(modelName,model_settings,classN=len(wanted_words.split(',')))
 
-
-    
+    # penalty weight for voice and noise, here 1.0:1.0 perform quite well
+    weight=torch.from_numpy(np.array([1.0,1.0]).astype('float32'))
     optimizer=torch.optim.Adam(model.parameters(),0.001)
-    loss_func=nn.CrossEntropyLoss()
+    loss_func=nn.CrossEntropyLoss(weight=weight)
     trainIter(trainx,trainy,valx,valy,model,optimizer,loss_func,modelName)
        
 

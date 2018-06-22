@@ -16,10 +16,13 @@ class RealDataProcessor(object):
 	def sliceWav(self,wavfile):
 		newAudios=[]
 		audio=AudioSegment.from_wav(wavfile)
+		print('audio length: ',len(audio))
 		t1,t2=0,len(audio)//250
+
 		while t1<t2:
 			newAudios.append(audio[t1*250:(t1+1)*250])
 			t1+=1
+		print ('number of segments: {}, should have:{}'.format(len(newAudios),t1))
 		return newAudios
 
 	def caldbs(self,audio):
@@ -37,6 +40,9 @@ class RealDataProcessor(object):
 			normalizedAudio+=audio[i*self.wnd:(i+1)*self.wnd].apply_gain(gaindb)
 		return normalizedAudio
 
+	# since audio need to be normalize before sending to model,
+	# normalized audio is not friendly for testing manually
+	# this function will return a map between original audio and normalized audio
 	def saveAudios(self,audios,origAudios,targetDir1,targetDir2,origAudioDir):
 		trackingMap=dict()
 		if not os.path.exists(targetDir1):

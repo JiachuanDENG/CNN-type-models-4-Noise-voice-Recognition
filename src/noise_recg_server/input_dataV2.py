@@ -36,6 +36,7 @@ from tensorflow.contrib.framework.python.ops import audio_ops as contrib_audio
 from tensorflow.python.ops import io_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
+import librosa
 
 MAX_NUM_WAVS_PER_CLASS = 2**27 - 1  # ~134M
 SILENCE_LABEL = '_silence_'
@@ -112,6 +113,7 @@ class AudioProcessor(object):
   def __init__(self, data_dir, 
                wanted_words, validation_percentage, testing_percentage,
                model_settings):
+    # print ('using v2','*'*20)
     self.data_dir = data_dir
     
     self.prepare_data_index(
@@ -205,6 +207,7 @@ class AudioProcessor(object):
     Args:
       model_settings: Information about the current model being trained.
     """
+    # print ('processing features',"*"*20)
     desired_samples = model_settings['desired_samples']
     self.wav_filename_placeholder_ = tf.placeholder(tf.string, [])
     wav_loader = io_ops.read_file(self.wav_filename_placeholder_)
@@ -235,7 +238,7 @@ class AudioProcessor(object):
         spectrogram,
         wav_decoder.sample_rate,
         dct_coefficient_count=model_settings['dct_coefficient_count'])
-    print (type(self.mfcc_),'*'*10)
+    # print (type(self.mfcc_),'*'*100)
     
   def set_size(self, mode):
     """Calculates the number of samples in the dataset partition.
@@ -279,7 +282,8 @@ class AudioProcessor(object):
     else:
       sample_count = max(0, min(how_many, len(candidates) - offset))
     # Data and labels will be populated and returned.
-    data = np.zeros((sample_count, model_settings['fingerprint_size']))
+    # data = np.zeros((sample_count, model_settings['fingerprint_size']))
+    data=np.zeros((sample_count,1,model_settings['spectrogram_length'],model_settings['dct_coefficient_count']))
     labels = np.zeros(sample_count)
     desired_samples = model_settings['desired_samples']
     
@@ -310,18 +314,16 @@ class AudioProcessor(object):
           self.time_shift_offset_placeholder_: time_shift_offset,
       }
       
-      # If we want silence, mute out the main sample but leave the background.
-      
       input_dict[self.foreground_volume_placeholder_] = 1
 
-      # Run the graph to produce the output audio.
-      data[i - offset, :] = sess.run(self.mfcc_, feed_dict=input_dict).flatten()
-     
-      # data[i - offset, :] = sess.run(self.mfcc_, feed_dict=input_dict)
+      
+      # we do not need to flatten the mfcc as tf code does
+      data[i - offset,0,:,:] = sess.run(self.mfcc_, feed_dict=input_dict) 
+      
       label_index = self.word_to_index[sample['label']]
       labels[i - offset] = label_index
       filenamesTrack.append(sample['file'])
-      # print (data[i - offset, :].shape,'_'*10)
+      
     return data, labels,filenamesTrack
 
     

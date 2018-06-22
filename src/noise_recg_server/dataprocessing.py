@@ -70,16 +70,9 @@ def getAllProcessedData(FLAGS):
     fingerprint_size = model_settings['fingerprint_size']
     label_count = model_settings['label_count']
     time_shift_samples = int((FLAGS.time_shift_ms * FLAGS.sample_rate) / 1000)
-    # Figure out the learning rates for each training phase. Since it's often
-    # effective to have high learning rates at the start of training, followed by
-    # lower levels towards the end, the number of steps and learning rates can be
-    # specified as comma-separated lists to define the rate at each stage. For
-    # example --how_many_training_steps=10000,3000 --learning_rate=0.001,0.0001
-    # will run 13,000 training loops in total, with a rate of 0.001 for the first
-    # 10,000, and 0.0001 for the final 3,000.
     
     
-
+    #fileTrack here will be used in record Data testing, so that we can track processed file segments with its original segment
     trainXFull, trainyFull,trainFilesTrack = audio_processor.get_data(
           -1, 0, model_settings,time_shift_samples, 'training', sess)
     valXFull, valyFull,valFilesTrack= (
@@ -87,6 +80,7 @@ def getAllProcessedData(FLAGS):
     testXFull, testyFull,testFilesTrack= (
             audio_processor.get_data(-1, 0, model_settings,0, 'testing', sess))
 
+    # since testset is not needed here, we concate train & test together
     trainXFull=np.concatenate((trainXFull,testXFull),axis=0)
     trainyFull=np.concatenate((trainyFull,testyFull),axis=0)
 
@@ -97,10 +91,6 @@ def getAllProcessedData(FLAGS):
     
 
 
-    # trainlen=int(0.7*trainXFull.shape[0])
-    # trainx,trainy=trainXFull[:trainlen],trainyFull[:trainlen]
-    # valx,valy=trainXFull[trainlen:],trainyFull[trainlen:]
-
     np.save(FLAGS.data_dir+'/trainingX.npy',trainXFull)
     
     np.save(FLAGS.data_dir+'/trainingy.npy',trainyFull)
@@ -108,13 +98,10 @@ def getAllProcessedData(FLAGS):
     np.save(FLAGS.data_dir+'/valX.npy',valXFull)
 
     np.save(FLAGS.data_dir+'/valy.npy',valyFull)
-    # pkl.dump(trainFilesTrack,open(FLAGS.data_dir+'/trainfilesTrack.pkl','wb'))
-    
     
 
 
   return trainXFull,trainyFull,valXFull,valyFull,model_settings,trainFilesTrack,valFilesTrack
-  # return train_fingerprints,train_ground_truth,model_settings
   
 
 
@@ -132,7 +119,7 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   parser.add_argument(
     '--time_shift_ms',
     type=float,
-    default=20,    #---- previously 100
+    default=20,   # notice that in orginal tf code (1s audio segment), time_shift_ms is set to be 100
     help="""\
     Range to randomly shift the training audio by in time.
     """)
@@ -154,7 +141,7 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
   parser.add_argument(
     '--clip_duration_ms',
     type=int,
-    default=250,
+    default=250, # note that here we are talking about 250ms audio segment recognition, rather than 1000ms
     help='Expected duration in milliseconds of the wavs',)
   parser.add_argument(
     '--window_size_ms',
@@ -179,7 +166,6 @@ def returnData(datadir='../../data/selfbuildDataTest/',wanted_words='testnoisyda
     help='Words to use (others will be added to an unknown label)',)
 
   FLAGS, unparsed = parser.parse_known_args()
-  # print ('hello',FLAGS)
-  # tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+
   trainx,trainy,valx,valy,model_settings,trainFilesTrack,valFilesTrack=getAllProcessedData(FLAGS)
   return  trainx,trainy,valx,valy,model_settings,trainFilesTrack,valFilesTrack
