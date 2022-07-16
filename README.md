@@ -20,5 +20,4 @@ With [MobileNet](https://arxiv.org/pdf/1704.04861.pdf) Tricks applied, so that m
 **testing**: python3 test.py [model name] [percentage of whole test data want to use]</br>
 **testing on real record wav**: python3 testOnRealRecord.py [model name] [wav file path]
 
-## Details:
-For more details, please check out in this [slides](https://www.sharelatex.com/read/zfyyzsjgykcr)
+
